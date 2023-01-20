@@ -24,8 +24,10 @@ firewall-cmd --add-port 52381/udp
 
 ## Acknowledge
 
+- https://github.com/norihiro/libvisca-ip
+  IP version
 - https://github.com/mkoppanen/libVISCA2
-  This is the base library.
+  This is the original base library.
 - http://damien.douxchamps.net/libvisca/
   This is the original library of libvisca.
 
