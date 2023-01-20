@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 #endif
 
 typedef struct _VISCA_tcp_ctx {
@@ -21,16 +22,16 @@ typedef struct _VISCA_tcp_ctx {
 #endif
 } VISCA_tcp_ctx_t;
 
-static int visca_tcp_cb_write(VISCAInterface_t *iface, const void *buf, int length)
+static int visca_tcp_cb_write(VISCAInterface_t *iface, const void *buf, int length, char *name)
 {
 	VISCA_tcp_ctx_t *ctx = iface->ctx;
-	return send(ctx->sockfd, buf, length, 0);
+	return (int)send(ctx->sockfd, buf, length, 0);
 }
 
 static int visca_tcp_cb_read(VISCAInterface_t *iface, void *buf, int length)
 {
 	VISCA_tcp_ctx_t *ctx = iface->ctx;
-	return recv(ctx->sockfd, buf, length, 0);
+	return (int)recv(ctx->sockfd, buf, length, 0);
 }
 
 static int visca_tcp_cb_close(VISCAInterface_t *iface)
@@ -75,8 +76,11 @@ static int initialize_socket(VISCA_tcp_ctx_t *ctx, const char *hostname, int por
 		fprintf(stderr, "Error: cannot create socket\n");
 		return 1;
 	}
-
-	struct sockaddr_in server = {
+    
+    // Do not crash on SIGPIPE (13)
+    int set = 1;
+    setsockopt(ctx->sockfd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
+    struct sockaddr_in server = {
 		.sin_family = AF_INET,
 		.sin_port = htons(port),
 	};
@@ -108,6 +112,7 @@ uint32_t VISCA_open_tcp(VISCAInterface_t *iface, const char *hostname, int port)
 	iface->ctx = ctx;
 	iface->address = 0;
 	iface->broadcast = 0;
+    iface->protocol = VISCA_PROTOCOL_TCP;
 
 	return VISCA_SUCCESS;
 }

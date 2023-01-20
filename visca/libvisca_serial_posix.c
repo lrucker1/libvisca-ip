@@ -11,16 +11,16 @@ typedef struct _VISCA_serial_ctx {
 	struct termios options;
 } VISCA_serial_ctx_t;
 
-static int visca_serial_cb_write(VISCAInterface_t *iface, const void *buf, int length)
+static int visca_serial_cb_write(VISCAInterface_t *iface, const void *buf, int length, char *name)
 {
 	VISCA_serial_ctx_t *ctx = iface->ctx;
-	return write(ctx->port_fd, buf, length);
+	return (int)write(ctx->port_fd, buf, length);
 }
 
 static int visca_serial_cb_read(VISCAInterface_t *iface, void *buf, int length)
 {
 	VISCA_serial_ctx_t *ctx = iface->ctx;
-	return read(ctx->port_fd, buf, length);
+	return (int)read(ctx->port_fd, buf, length);
 }
 
 static void visca_serial_cb_wait_read(VISCAInterface_t *iface)
@@ -50,8 +50,9 @@ static uint32_t VISCA_unread_bytes(VISCAInterface_t *iface, unsigned char *buffe
 		ssize_t ret;
 		bytes = (bytes > *buffer_size) ? *buffer_size : bytes;
 		ret = read(ctx->port_fd, &buffer, bytes);
-		if (ret != bytes)
-			return bytes = ret;
+		if (ret != bytes) {
+			return bytes = (uint32_t)ret;
+		}
 		*buffer_size = bytes;
 		return VISCA_FAILURE;
 	}
@@ -134,6 +135,7 @@ uint32_t VISCA_open_serial(VISCAInterface_t *iface, const char *device_name)
 	ctx->port_fd = fd;
 	iface->address = 0;
 	iface->ctx = ctx;
+	iface->protocol = VISCA_PROTOCOL_SERIAL;
 
 	return VISCA_SUCCESS;
 }

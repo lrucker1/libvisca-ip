@@ -22,6 +22,8 @@
 #ifndef __LIBVISCA_H__
 #define __LIBVISCA_H__
 
+#include <stddef.h>
+
 #if defined(_WIN32) || defined(WIN32) || defined(__WIN32__) || defined(_MSC_VER)
 #ifndef VISCA_API
 #define VISCA_API __declspec(dllimport)
@@ -37,6 +39,7 @@
 
 #define VISCA_COMMAND 0x01
 #define VISCA_INQUIRY 0x09
+#define VISCA_REPLY 0x90
 #define VISCA_TERMINATOR 0xFF
 
 #define VISCA_CATEGORY_INTERFACE 0x00
@@ -89,6 +92,9 @@
 #define VISCA_MODEL_H10 0x044A /* from H10 tech-manual */
 
 /* Commands/inquiries codes */
+// general format, though there are exceptions:
+// VISCA_CMD        - top level command
+// VISCA_CMD_SUBCMD - subcommand of CMD
 #define VISCA_POWER 0x00
 #define VISCA_DEVICE_INFO 0x02
 #define VISCA_KEYLOCK 0x17
@@ -141,10 +147,18 @@
 #define VISCA_WB_MANUAL 0x05
 #define VISCA_WB_TRIGGER 0x10
 #define VISCA_WB_ONE_PUSH_TRIG 0x05
+#define VISCA_WB_COLORTEMP 0x20
 #define VISCA_RGAIN 0x03
 #define VISCA_RGAIN_VALUE 0x43
 #define VISCA_BGAIN 0x04
 #define VISCA_BGAIN_VALUE 0x44
+#define VISCA_COLORTEMP 0x20
+#define VISCA_COLORHUE 0x4F
+#define VISCA_COLORGAIN 0x49
+#define VISCA_AWBSENSITIVITY 0xA9
+#define VISCA_AWBSENSITIVITY_HIGH 0x00
+#define VISCA_AWBSENSITIVITY_NORMAL 0x01
+#define VISCA_AWBSENSITIVITY_LOW 0x02
 #define VISCA_AUTO_EXP 0x39
 #define VISCA_AUTO_EXP_FULL_AUTO 0x00
 #define VISCA_AUTO_EXP_MANUAL 0x03
@@ -163,6 +177,7 @@
 #define VISCA_IRIS 0x0B
 #define VISCA_IRIS_VALUE 0x4B
 #define VISCA_GAIN 0x0C
+#define VISCA_GAINLIMIT 0x2C
 #define VISCA_GAIN_VALUE 0x4C
 #define VISCA_BRIGHT 0x0D
 #define VISCA_BRIGHT_VALUE 0x4D
@@ -203,6 +218,7 @@
 #define VISCA_DIGITAL_EFFECT_LUMI 0x03
 #define VISCA_DIGITAL_EFFECT_TRAIL 0x04
 #define VISCA_DIGITAL_EFFECT_LEVEL 0x65
+#define VISCA_PICTURE_FLIP 0x66
 #define VISCA_CAM_STABILIZER 0x34
 #define VISCA_CAM_STABILIZER_ON 0x02
 #define VISCA_CAM_STABILIZER_OFF 0x03
@@ -256,12 +272,16 @@
 #define VISCA_PT_DATASCREEN_ON 0x02
 #define VISCA_PT_DATASCREEN_OFF 0x03
 #define VISCA_PT_DATASCREEN_ONOFF 0x10
+#define VISCA_FLICKER 0x23
+#define VISCA_BRIGHTNESS 0xA1
+#define VISCA_CONTRAST 0xA2
 
 #define VISCA_PT_VIDEOSYSTEM_INQ 0x23
 #define VISCA_PT_MODE_INQ 0x10
 #define VISCA_PT_MAXSPEED_INQ 0x11
 #define VISCA_PT_POSITION_INQ 0x12
 #define VISCA_PT_DATASCREEN_INQ 0x06
+#define VISCA_FLICKER_INQ 0x55
 
 /**************************/
 /* DIRECT REGISTER ACCESS */
@@ -369,7 +389,7 @@ extern "C" {
 struct _VISCA_interface;
 
 typedef struct _VISCA_callback {
-	int (*write)(struct _VISCA_interface *iface, const void *buf, int length);
+	int (*write)(struct _VISCA_interface *iface, const void *buf, int length, char *name);
 	int (*read)(struct _VISCA_interface *iface, void *buf, int length);
 	void (*wait_read)(struct _VISCA_interface *iface);
 	void (*clear_error)(struct _VISCA_interface *iface);
@@ -400,6 +420,10 @@ struct _VISCA_interface {
 	unsigned char ibuf[VISCA_INPUT_BUFFER_SIZE];
 	int bytes;
 	int type;
+	int errortype;
+	
+	int cameratype; // 0: Sony
+	int protocol;
 };
 typedef struct _VISCA_interface VISCAInterface_t;
 
@@ -438,6 +462,15 @@ typedef __int16 int16_t;
 /* size of the local packet buffer */
 #define VISCA_INPUT_BUFFER_SIZE 1024
 
+// Not the CAM_VersionInq Vendor ID: PTZOptics doesn't even support that.
+#define VISCA_IFACE_CAM_SONY 0x00
+#define VISCA_IFACE_CAM_PTZOPTICS 0x01
+
+// PacketSender needs to know if the real camera is TCP or UDP
+#define VISCA_PROTOCOL_TCP 0x00
+#define VISCA_PROTOCOL_UDP 0x01
+#define VISCA_PROTOCOL_SERIAL 0x02
+
 /* This is the interface for the POSIX platform.
  */
 struct _VISCA_interface {
@@ -452,6 +485,10 @@ struct _VISCA_interface {
 	unsigned char ibuf[VISCA_INPUT_BUFFER_SIZE];
 	uint32_t bytes;
 	uint32_t type;
+    uint32_t errortype;
+	
+	uint8_t cameratype; // 0: Sony
+	uint8_t protocol;
 };
 typedef struct _VISCA_interface VISCAInterface_t;
 
@@ -483,14 +520,18 @@ typedef struct _VISCA_title {
 	unsigned char title[20];
 } VISCATitleData_t;
 
+#define VISCA_PACKET_NAME_LENGTH 50
 typedef struct _VISCA_packet {
-	unsigned char bytes[32];
+	unsigned char bytes[VISCA_PACKET_NAME_LENGTH];
 	uint32_t length;
+    char name[32];
 } VISCAPacket_t;
 
 /* GENERAL FUNCTIONS */
 
 VISCA_API uint32_t VISCA_set_address(VISCAInterface_t *iface, int *camera_num);
+
+VISCA_API uint32_t VISCA_cancel(VISCAInterface_t *iface, VISCACamera_t *camera);
 
 VISCA_API uint32_t VISCA_clear(VISCAInterface_t *iface, VISCACamera_t *camera);
 
@@ -500,6 +541,9 @@ VISCA_API uint32_t VISCA_open_serial(VISCAInterface_t *iface, const char *device
 VISCA_API uint32_t VISCA_open_tcp(VISCAInterface_t *iface, const char *hostname, int port);
 VISCA_API uint32_t VISCA_open_udp(VISCAInterface_t *iface, const char *hostname, int port);
 VISCA_API uint32_t VISCA_open_udp4(VISCAInterface_t *iface, const char *hostname, int port, const char *bind_host);
+VISCA_API uint32_t VISCA_open_ini(VISCAInterface_t *iface, const char *path, const char *hostname, int port, int protocol);
+VISCA_API uint32_t VISCA_ini_set_packet_id(VISCAInterface_t *iface, const char *packetID);
+VISCA_API uint32_t VISCA_ini_write_file(VISCAInterface_t *iface, const char *path);
 
 VISCA_API uint32_t VISCA_close(VISCAInterface_t *iface);
 
@@ -512,6 +556,18 @@ VISCA_API uint32_t VISCA_get_info(VISCAInterface_t *iface, VISCACamera_t *camera
 VISCA_API uint32_t VISCA_set_keylock(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t power);
 
 VISCA_API uint32_t VISCA_set_camera_id(VISCAInterface_t *iface, VISCACamera_t *camera, uint16_t id);
+
+VISCA_API uint32_t VISCA_set_colortemp_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t id);
+
+VISCA_API uint32_t VISCA_set_AWBSens(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t level);
+
+VISCA_API uint32_t VISCA_set_colorhue(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t degrees);
+
+VISCA_API uint32_t VISCA_set_colorgain(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t percent);
+
+VISCA_API uint32_t VISCA_set_brightness_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint32_t value);
+
+VISCA_API uint32_t VISCA_set_contrast_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint32_t value);
 
 VISCA_API uint32_t VISCA_set_zoom_tele(VISCAInterface_t *iface, VISCACamera_t *camera);
 
@@ -602,6 +658,8 @@ VISCA_API uint32_t VISCA_set_gain_reset(VISCAInterface_t *iface, VISCACamera_t *
 
 VISCA_API uint32_t VISCA_set_gain_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint32_t value);
 
+VISCA_API uint32_t VISCA_set_gainlimit_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t value);
+
 VISCA_API uint32_t VISCA_set_bright_up(VISCAInterface_t *iface, VISCACamera_t *camera);
 
 VISCA_API uint32_t VISCA_set_bright_down(VISCAInterface_t *iface, VISCACamera_t *camera);
@@ -644,6 +702,8 @@ VISCA_API uint32_t VISCA_set_mirror(VISCAInterface_t *iface, VISCACamera_t *came
 
 VISCA_API uint32_t VISCA_set_freeze(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t power);
 
+VISCA_API uint32_t VISCA_set_picture_flip(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t power);
+
 VISCA_API uint32_t VISCA_set_picture_effect(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t mode);
 
 VISCA_API uint32_t VISCA_set_digital_effect(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t mode);
@@ -678,6 +738,10 @@ VISCA_API uint32_t VISCA_set_irreceive_on(VISCAInterface_t *iface, VISCACamera_t
 VISCA_API uint32_t VISCA_set_irreceive_off(VISCAInterface_t *iface, VISCACamera_t *camera);
 
 VISCA_API uint32_t VISCA_set_irreceive_onoff(VISCAInterface_t *iface, VISCACamera_t *camera);
+
+/*  preset_speed should be in the range 01 - 18 */
+
+VISCA_API uint32_t VISCA_set_pantilt_preset_speed(VISCAInterface_t *iface, VISCACamera_t *camera, uint32_t preset_speed);
 
 /*  pan_speed should be in the range 01 - 18.
     tilt_speed should be in the range 01 - 14 */
@@ -774,6 +838,18 @@ VISCA_API uint32_t VISCA_get_rgain_value(VISCAInterface_t *iface, VISCACamera_t 
 
 VISCA_API uint32_t VISCA_get_bgain_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint16_t *value);
 
+VISCA_API uint32_t VISCA_get_colortemp_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *value);
+
+VISCA_API uint32_t VISCA_get_AWBSens_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *value);
+
+VISCA_API uint32_t VISCA_get_colorhue_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *value);
+
+VISCA_API uint32_t VISCA_get_colorgain_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *value);
+
+VISCA_API uint32_t VISCA_get_brightness_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint16_t *value);
+
+VISCA_API uint32_t VISCA_get_contrast_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint16_t *value);
+
 VISCA_API uint32_t VISCA_get_auto_exp_mode(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *mode);
 
 VISCA_API uint32_t VISCA_get_slow_shutter_auto(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *mode);
@@ -783,6 +859,8 @@ VISCA_API uint32_t VISCA_get_shutter_value(VISCAInterface_t *iface, VISCACamera_
 VISCA_API uint32_t VISCA_get_iris_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint16_t *value);
 
 VISCA_API uint32_t VISCA_get_gain_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint16_t *value);
+
+VISCA_API uint32_t VISCA_get_gainlimit_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *value);
 
 VISCA_API uint32_t VISCA_get_bright_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint16_t *value);
 
@@ -803,6 +881,8 @@ VISCA_API uint32_t VISCA_get_wide_mode(VISCAInterface_t *iface, VISCACamera_t *c
 VISCA_API uint32_t VISCA_get_mirror(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *power);
 
 VISCA_API uint32_t VISCA_get_freeze(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *power);
+
+VISCA_API uint32_t VISCA_get_picture_flip(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *power);
 
 VISCA_API uint32_t VISCA_get_picture_effect(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *mode);
 
@@ -891,6 +971,8 @@ VISCA_API uint32_t VISCA_set_md_measure_mode2_onoff(VISCAInterface_t *iface, VIS
 
 VISCA_API uint32_t VISCA_set_md_measure_mode2(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t power);
 
+VISCA_API uint32_t VISCA_set_flicker_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t flicker);
+
 VISCA_API uint32_t VISCA_get_keylock(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *power);
 
 VISCA_API uint32_t VISCA_get_wide_con_lens(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *power);
@@ -925,6 +1007,8 @@ VISCA_API uint32_t VISCA_set_register(VISCAInterface_t *iface, VISCACamera_t *ca
 
 VISCA_API uint32_t VISCA_get_register(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t reg_num,
 				      uint8_t *reg_val);
+
+VISCA_API uint32_t VISCA_get_flicker_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *flicker);
 
 /* Utility */
 VISCA_API uint32_t VISCA_usleep(uint32_t useconds);
