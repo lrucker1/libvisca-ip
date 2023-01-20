@@ -1,6 +1,6 @@
 # libvisca-ip
 
-This is a libvisca library with VISCA over TCP and UDP.
+This is a libvisca library with VISCA over TCP and UDP. This branch also supports PTZOptics variations, and adds a plugin to support writing PacketSender import files.
 
 ## Build
 Use cmake to build this library as below.
@@ -28,3 +28,7 @@ firewall-cmd --add-port 52381/udp
   This is the base library.
 - http://damien.douxchamps.net/libvisca/
   This is the original library of libvisca.
+
+## Dependencies
+- https://github.com/lrucker1/iniparser 
+  This is a minor variant; PacketSender requires case-sensitive keys.
