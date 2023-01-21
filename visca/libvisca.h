@@ -522,9 +522,9 @@ typedef struct _VISCA_title {
 
 #define VISCA_PACKET_NAME_LENGTH 50
 typedef struct _VISCA_packet {
-	unsigned char bytes[VISCA_PACKET_NAME_LENGTH];
+	unsigned char bytes[32];
 	uint32_t length;
-    char name[32];
+    char name[VISCA_PACKET_NAME_LENGTH];
 } VISCAPacket_t;
 
 /* GENERAL FUNCTIONS */
