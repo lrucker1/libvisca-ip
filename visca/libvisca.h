@@ -746,6 +746,8 @@ VISCA_API uint32_t VISCA_set_pantilt_preset_speed(VISCAInterface_t *iface, VISCA
 /*  pan_speed should be in the range 01 - 18.
     tilt_speed should be in the range 01 - 14 */
 
+VISCA_API uint32_t VISCA_set_pantilt(VISCAInterface_t *iface, VISCACamera_t *camera, uint32_t pan_speed, uint32_t tilt_speed, uint8_t horiz, uint8_t vert);
+
 VISCA_API uint32_t VISCA_set_pantilt_up(VISCAInterface_t *iface, VISCACamera_t *camera, uint32_t pan_speed,
 					uint32_t tilt_speed);
 

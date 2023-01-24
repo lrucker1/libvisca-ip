@@ -2427,6 +2427,22 @@ VISCA_API uint32_t VISCA_set_pantilt_preset_speed(VISCAInterface_t *iface, VISCA
 }
 
 
+VISCA_API uint32_t VISCA_set_pantilt(VISCAInterface_t *iface, VISCACamera_t *camera, uint32_t pan_speed,
+                    uint32_t tilt_speed, uint8_t horiz, uint8_t vert)
+{
+    VISCAPacket_t packet;
+
+    _VISCA_init_packet_name(&packet, "Pan_TiltDrive");
+    _VISCA_append_byte(&packet, VISCA_COMMAND);
+    _VISCA_append_byte(&packet, VISCA_CATEGORY_PAN_TILTER);
+    _VISCA_append_byte(&packet, VISCA_PT_DRIVE);
+    _VISCA_append_byte(&packet, pan_speed);
+    _VISCA_append_byte(&packet, tilt_speed);
+    _VISCA_append_byte(&packet, horiz);
+    _VISCA_append_byte(&packet, vert);
+    return _VISCA_send_packet_with_reply(iface, camera, &packet);
+}
+
 VISCA_API uint32_t VISCA_set_pantilt_up(VISCAInterface_t *iface, VISCACamera_t *camera, uint32_t pan_speed,
 					uint32_t tilt_speed)
 {
