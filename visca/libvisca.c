@@ -2372,6 +2372,31 @@ VISCA_API uint32_t VISCA_get_gainlimit_value(VISCAInterface_t *iface, VISCACamer
     }
 }
 
+VISCA_API uint32_t VISCA_set_motionsync_on(VISCAInterface_t *iface, VISCACamera_t *camera)
+{
+    VISCAPacket_t packet;
+
+    _VISCA_init_packet_name(&packet, "CAM_PTZMotionSync_On");
+    _VISCA_append_byte(&packet, VISCA_COMMAND);
+    _VISCA_append_byte(&packet, VISCA_CATEGORY_A);
+    _VISCA_append_byte(&packet, VISCA_MOTIONSYNC);
+    _VISCA_append_byte(&packet, VISCA_ON);
+
+    return _VISCA_send_packet_with_reply(iface, camera, &packet);
+}
+
+VISCA_API uint32_t VISCA_set_motionsync_off(VISCAInterface_t *iface, VISCACamera_t *camera)
+{
+    VISCAPacket_t packet;
+
+    _VISCA_init_packet_name(&packet, "CAM_PTZMotionSync_Off");
+    _VISCA_append_byte(&packet, VISCA_COMMAND);
+    _VISCA_append_byte(&packet, VISCA_CATEGORY_A);
+    _VISCA_append_byte(&packet, VISCA_MOTIONSYNC);
+    _VISCA_append_byte(&packet, VISCA_ON);
+
+    return _VISCA_send_packet_with_reply(iface, camera, &packet);
+}
 #pragma mark pantilt
 
 VISCA_API uint32_t VISCA_set_irreceive_on(VISCAInterface_t *iface, VISCACamera_t *camera)

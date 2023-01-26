@@ -46,6 +46,8 @@
 #define VISCA_CATEGORY_CAMERA1 0x04
 #define VISCA_CATEGORY_PAN_TILTER 0x06
 #define VISCA_CATEGORY_CAMERA2 0x07
+#define VISCA_CATEGORY_A 0x0A
+#define VISCA_CATEGORY_B 0x0B
 
 /* Known Vendor IDs */
 #define VISCA_VENDOR_SONY 0x0020
@@ -282,6 +284,10 @@
 #define VISCA_PT_POSITION_INQ 0x12
 #define VISCA_PT_DATASCREEN_INQ 0x06
 #define VISCA_FLICKER_INQ 0x55
+
+#define VISCA_MOTIONSYNC 0x11
+#define VISCA_MOTIONSYNC_ONOFF 0x13
+#define VISCA_MOTIONSYNC_SPEED 0x14
 
 /**************************/
 /* DIRECT REGISTER ACCESS */
@@ -863,6 +869,10 @@ VISCA_API uint32_t VISCA_get_iris_value(VISCAInterface_t *iface, VISCACamera_t *
 VISCA_API uint32_t VISCA_get_gain_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint16_t *value);
 
 VISCA_API uint32_t VISCA_get_gainlimit_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t *value);
+
+VISCA_API uint32_t VISCA_set_motionsync_on(VISCAInterface_t *iface, VISCACamera_t *camera);
+
+VISCA_API uint32_t VISCA_set_motionsync_off(VISCAInterface_t *iface, VISCACamera_t *camera);
 
 VISCA_API uint32_t VISCA_get_bright_value(VISCAInterface_t *iface, VISCACamera_t *camera, uint16_t *value);
 
