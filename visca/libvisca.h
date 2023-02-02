@@ -273,6 +273,8 @@
 #define VISCA_PT_DATASCREEN 0x06
 #define VISCA_PT_DATASCREEN_ON 0x02
 #define VISCA_PT_DATASCREEN_OFF 0x03
+#define VISCA_PT_DATASCREEN_RETURN 0x04
+#define VISCA_PT_DATASCREEN_ENTER 0x05
 #define VISCA_PT_DATASCREEN_ONOFF 0x10
 #define VISCA_FLICKER 0x23
 #define VISCA_BRIGHTNESS 0xA1
@@ -814,6 +816,10 @@ VISCA_API uint32_t VISCA_set_datascreen_on(VISCAInterface_t *iface, VISCACamera_
 VISCA_API uint32_t VISCA_set_datascreen_off(VISCAInterface_t *iface, VISCACamera_t *camera);
 
 VISCA_API uint32_t VISCA_set_datascreen_onoff(VISCAInterface_t *iface, VISCACamera_t *camera);
+
+VISCA_API uint32_t VISCA_set_datascreen_enter(VISCAInterface_t *iface, VISCACamera_t *camera);
+
+VISCA_API uint32_t VISCA_set_datascreen_return(VISCAInterface_t *iface, VISCACamera_t *camera);
 
 VISCA_API uint32_t VISCA_set_spot_ae_on(VISCAInterface_t *iface, VISCACamera_t *camera);
 

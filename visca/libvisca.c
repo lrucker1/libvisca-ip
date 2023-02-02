@@ -2837,6 +2837,32 @@ VISCA_API uint32_t VISCA_set_datascreen_onoff(VISCAInterface_t *iface, VISCACame
 	return _VISCA_send_packet_with_reply(iface, camera, &packet);
 }
 
+VISCA_API uint32_t VISCA_set_datascreen_enter(VISCAInterface_t *iface, VISCACamera_t *camera)
+{
+    VISCAPacket_t packet;
+
+    _VISCA_init_packet_name(&packet, "OSDMenu_Enter");
+    _VISCA_append_byte(&packet, VISCA_COMMAND);
+    _VISCA_append_byte(&packet, VISCA_CATEGORY_PAN_TILTER);
+    _VISCA_append_byte(&packet, VISCA_PT_DATASCREEN);
+    _VISCA_append_byte(&packet, VISCA_PT_DATASCREEN_ENTER);
+
+    return _VISCA_send_packet_with_reply(iface, camera, &packet);
+}
+
+VISCA_API uint32_t VISCA_set_datascreen_return(VISCAInterface_t *iface, VISCACamera_t *camera)
+{
+    VISCAPacket_t packet;
+
+    _VISCA_init_packet_name(&packet, "OSDMenu_Return");
+    _VISCA_append_byte(&packet, VISCA_COMMAND);
+    _VISCA_append_byte(&packet, VISCA_CATEGORY_PAN_TILTER);
+    _VISCA_append_byte(&packet, VISCA_PT_DATASCREEN);
+    _VISCA_append_byte(&packet, VISCA_PT_DATASCREEN_RETURN);
+
+    return _VISCA_send_packet_with_reply(iface, camera, &packet);
+}
+
 VISCA_API uint32_t VISCA_set_register(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t reg_num, uint8_t reg_val)
 {
 	VISCAPacket_t packet;
