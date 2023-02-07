@@ -108,18 +108,20 @@ uint32_t VISCA_open_serial(VISCAInterface_t *iface, const char *device_name)
 		free(ctx);
 		return VISCA_FAILURE;
 	} else {
-		fcntl(fd, F_SETFL, 0);
+		//fcntl(fd, F_SETFL, 0);
 		/* Setting port parameters */
 		tcgetattr(fd, &ctx->options);
 
 		/* control flags */
 		cfsetispeed(&ctx->options, B9600); /* 9600 Bds   */
+        cfsetospeed(&ctx->options, B9600); /* 9600 Bds   */
+#if 0
+        // This did not work with my camera's USB Serial port.
 		ctx->options.c_cflag &= ~PARENB;   /* No parity  */
 		ctx->options.c_cflag &= ~CSTOPB;   /*            */
 		ctx->options.c_cflag &= ~CSIZE;    /* 8bit       */
 		ctx->options.c_cflag |= CS8;       /*            */
 		ctx->options.c_cflag &= ~CRTSCTS;  /* No hdw ctl */
-
 		/* local flags */
 		ctx->options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); /* raw input */
 
@@ -129,6 +131,20 @@ uint32_t VISCA_open_serial(VISCAInterface_t *iface, const char *device_name)
 
 		/* output flags */
 		ctx->options.c_oflag &= ~OPOST; /* raw output */
+#else
+        //Settings from:
+        //  https://github.com/Marzac/rs232/blob/master/rs232-linux.c
+        // by way of https://github.com/kleydon/Mac-SerialPort-Cpp
+        //
+        ctx->options.c_iflag &= ~(INLCR | ICRNL);
+        ctx->options.c_iflag |= IGNPAR | IGNBRK;
+        ctx->options.c_oflag &= ~(OPOST | ONLCR | OCRNL);
+        ctx->options.c_cflag &= ~(PARENB | PARODD | CSTOPB | CSIZE | CRTSCTS);
+        ctx->options.c_cflag |= CLOCAL | CREAD | CS8;
+        ctx->options.c_lflag &= ~(ICANON | ISIG | ECHO);
+        ctx->options.c_cc[VTIME] = 1;
+        ctx->options.c_cc[VMIN]  = 0;
+#endif
 
 		tcsetattr(fd, TCSANOW, &ctx->options);
 	}
