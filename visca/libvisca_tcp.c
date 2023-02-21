@@ -80,6 +80,7 @@ static int initialize_socket(VISCA_tcp_ctx_t *ctx, const char *hostname, int por
     // Do not crash on SIGPIPE (13)
     int set = 1;
     setsockopt(ctx->sockfd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
+    setsockopt(ctx->sockfd, SOL_SOCKET, SO_KEEPALIVE, (void *)&set, sizeof(int));
     struct sockaddr_in server = {
 		.sin_family = AF_INET,
 		.sin_port = htons(port),
