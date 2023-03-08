@@ -93,6 +93,7 @@ uint32_t _VISCA_get_packet(VISCAInterface_t *iface)
 	// get octets one by one
 	bytes_read = iface->callback->read(iface, iface->ibuf, 1);
 	if (bytes_read <= 0) {
+        iface->errortype = VISCA_READ_FAILURE;
 		return VISCA_FAILURE;
 	}
 	while (iface->ibuf[pos] != VISCA_TERMINATOR) {
@@ -101,6 +102,7 @@ uint32_t _VISCA_get_packet(VISCAInterface_t *iface)
 		}
 		bytes_read = iface->callback->read(iface, iface->ibuf + pos, 1);
 		if (bytes_read <= 0) {
+            iface->errortype = VISCA_READ_FAILURE;
 			return VISCA_FAILURE;
 		}
 	}

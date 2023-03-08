@@ -367,6 +367,8 @@
 /* these two are defined by me, not by the specs. */
 #define VISCA_SUCCESS 0x00
 #define VISCA_FAILURE 0xFF
+// errortype for VISCA_FAILURE
+#define VISCA_READ_FAILURE 0xF0
 
 /* specs errors: */
 #define VISCA_ERROR_MESSAGE_LENGTH 0x01
