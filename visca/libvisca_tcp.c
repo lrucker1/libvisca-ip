@@ -24,12 +24,16 @@ typedef struct _VISCA_tcp_ctx {
 
 static int visca_tcp_cb_write(VISCAInterface_t *iface, const void *buf, int length, char *name)
 {
+    if (!iface || !iface->ctx)
+        return 0;
 	VISCA_tcp_ctx_t *ctx = iface->ctx;
 	return (int)send(ctx->sockfd, buf, length, 0);
 }
 
 static int visca_tcp_cb_read(VISCAInterface_t *iface, void *buf, int length)
 {
+    if (!iface || !iface->ctx)
+        return 0;
 	VISCA_tcp_ctx_t *ctx = iface->ctx;
 	return (int)recv(ctx->sockfd, buf, length, 0);
 }
@@ -98,6 +102,27 @@ static int initialize_socket(VISCA_tcp_ctx_t *ctx, const char *hostname, int por
 	}
 
 	return 0;
+}
+
+uint32_t VISCA_reconnect_tcp(VISCAInterface_t *iface, const char *hostname, int port)
+{
+    VISCA_tcp_ctx_t *ctx = iface->ctx;
+    if (ctx == NULL) {
+        return VISCA_open_tcp(iface, hostname, port);
+    }
+    if (ctx->sockfd != -1) {
+#ifdef VISCA_WIN
+        closesocket(ctx->sockfd);
+#else
+        close(ctx->sockfd);
+#endif
+    }
+    
+    if (initialize_socket(ctx, hostname, port)) {
+        return VISCA_FAILURE;
+    }
+
+    return VISCA_SUCCESS;
 }
 
 uint32_t VISCA_open_tcp(VISCAInterface_t *iface, const char *hostname, int port)

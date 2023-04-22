@@ -555,6 +555,8 @@ VISCA_API uint32_t VISCA_open_ini(VISCAInterface_t *iface, const char *path, con
 VISCA_API uint32_t VISCA_ini_set_packet_id(VISCAInterface_t *iface, const char *packetID);
 VISCA_API uint32_t VISCA_ini_write_file(VISCAInterface_t *iface, const char *path);
 
+VISCA_API uint32_t VISCA_reconnect_tcp(VISCAInterface_t *iface, const char *hostname, int port);
+
 VISCA_API uint32_t VISCA_close(VISCAInterface_t *iface);
 
 /* COMMANDS */

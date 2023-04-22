@@ -108,6 +108,8 @@ static int visca_udp_send_packet(VISCA_udp_ctx_t *ctx, uint16_t type, const void
 
 static int visca_udp_cb_write(VISCAInterface_t *iface, const void *buf, int length, char *name)
 {
+    if (!iface || !iface->ctx)
+        return 0;
 	VISCA_udp_ctx_t *ctx = iface->ctx;
 	const uint8_t *buf_int = buf;
 	uint16_t type = 0;
@@ -193,6 +195,8 @@ inline static int visca_udp_recv_packet(VISCA_udp_ctx_t *ctx)
 
 static int visca_udp_cb_read(VISCAInterface_t *iface, void *buf, int length)
 {
+    if (!iface || !iface->ctx)
+        return 0;
 	if (length <= 0)
 		return 0;
 

@@ -13,12 +13,16 @@ typedef struct _VISCA_serial_ctx {
 
 static int visca_serial_cb_write(VISCAInterface_t *iface, const void *buf, int length, char *name)
 {
+    if (!iface || !iface->ctx)
+        return 0;
 	VISCA_serial_ctx_t *ctx = iface->ctx;
 	return (int)write(ctx->port_fd, buf, length);
 }
 
 static int visca_serial_cb_read(VISCAInterface_t *iface, void *buf, int length)
 {
+    if (!iface || !iface->ctx)
+        return 0;
 	VISCA_serial_ctx_t *ctx = iface->ctx;
 	return (int)read(ctx->port_fd, buf, length);
 }
@@ -38,8 +42,6 @@ static void visca_serial_cb_wait_read(VISCAInterface_t *iface)
 
 static uint32_t VISCA_unread_bytes(VISCAInterface_t *iface, unsigned char *buffer, uint32_t *buffer_size)
 {
-	if (!iface || !iface->ctx)
-		return VISCA_FAILURE;
 	VISCA_serial_ctx_t *ctx = iface->ctx;
 
 	uint32_t bytes = 0;
