@@ -1373,6 +1373,20 @@ VISCA_API uint32_t VISCA_memory_set(VISCAInterface_t *iface, VISCACamera_t *came
 
 VISCA_API uint32_t VISCA_memory_recall(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t channel)
 {
+    VISCAPacket_t packet;
+
+    _VISCA_init_packet_name(&packet, "CAM_Memory_Recall");
+    _VISCA_append_byte(&packet, VISCA_COMMAND);
+    _VISCA_append_byte(&packet, VISCA_CATEGORY_CAMERA1);
+    _VISCA_append_byte(&packet, VISCA_MEMORY);
+    _VISCA_append_byte(&packet, VISCA_MEMORY_RECALL);
+    _VISCA_append_byte(&packet, channel);
+
+    return _VISCA_send_packet_with_reply(iface, camera, &packet);
+}
+
+VISCA_API uint32_t VISCA_memory_recall_noreply(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t channel)
+{
 	VISCAPacket_t packet;
 
 	_VISCA_init_packet_name(&packet, "CAM_Memory_Recall");
@@ -1382,7 +1396,7 @@ VISCA_API uint32_t VISCA_memory_recall(VISCAInterface_t *iface, VISCACamera_t *c
 	_VISCA_append_byte(&packet, VISCA_MEMORY_RECALL);
 	_VISCA_append_byte(&packet, channel);
 
-	return _VISCA_send_packet_with_reply(iface, camera, &packet);
+	return _VISCA_send_packet(iface, camera, &packet);
 }
 
 VISCA_API uint32_t VISCA_memory_reset(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t channel)

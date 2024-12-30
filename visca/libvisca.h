@@ -725,6 +725,7 @@ VISCA_API uint32_t VISCA_set_digital_effect_level(VISCAInterface_t *iface, VISCA
 VISCA_API uint32_t VISCA_memory_set(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t channel);
 
 VISCA_API uint32_t VISCA_memory_recall(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t channel);
+VISCA_API uint32_t VISCA_memory_recall_noreply(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t channel);
 
 VISCA_API uint32_t VISCA_memory_reset(VISCAInterface_t *iface, VISCACamera_t *camera, uint8_t channel);
 
